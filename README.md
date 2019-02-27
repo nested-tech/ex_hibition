@@ -26,6 +26,12 @@ $ mix deps.get
 $ mix docs
 ```
 
+### Modules
+
+```bash
+$ git checkout 2-modules
+```
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed

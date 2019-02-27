@@ -1,4 +1,8 @@
 defmodule Fac do
+  ############
+  # Examples
+  ############
+
   @moduledoc """
   The fruits of your labour
   """
@@ -174,5 +178,65 @@ defmodule Fac do
     new_accumulator = function.(head, accumulator)
 
     reduce(tail, new_accumulator, function)
+  end
+
+  ############
+  # Processes
+  ############
+
+  @doc """
+  We can call any function directly:
+
+      iex> Fac.hello_goodbye("Hello Person")
+      {:ok, "Goodbye Person"}
+
+  or we can spawn a separate process to run the function:
+
+      iex> spawn Fac, :hello_goodbye, ["Hello Person"]
+      #PID<0.162.0>
+
+  But where did the "Goodbye" go?
+
+  We will use a `greeter` function to spawn a process that waits for a message before
+  sending a greeting back:
+
+      iex> pid = spawn Fac, :greeter, []
+      #PID<0.139.0>
+
+      iex> send(pid, {self(), "Hello Faccer"})
+      {#PID<0.137.0>, {:ok, "Goodbye Faccer"}}
+
+  Note:
+    `self()` returns the process identifier (pid) for current process.
+     In this case, the pid for the iex session (`#PID<0.137.0>`)
+
+
+  In order to receive the greeting we need to have a corresponding `receive`
+  block:
+
+      iex> receive do
+       ..> {:ok, message} ->
+       ..>   IO.puts(message)
+       ..> end
+      {:ok, "Goodbye Faccer"}
+      :ok
+
+  ## Do you want to know more?
+
+  What happens if we send the greeter another message?
+
+  Let's look up how to add a timeout to our mailbox
+  (hint: we want to use the `after` keyword).
+
+  Use `flush`
+
+  We should also set up the greeter to respond to more than one message
+  (hint: we can use recursion...)
+  """
+  def greeter do
+    receive do
+      {sender, greeting} ->
+        send(sender, hello_goodbye(greeting))
+    end
   end
 end

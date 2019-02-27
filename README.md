@@ -32,6 +32,12 @@ $ mix docs
 $ git checkout 2-modules
 ```
 
+### Processes
+
+```bash
+$ git checkout 3-processes
+```
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed

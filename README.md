@@ -44,6 +44,12 @@ $ git checkout 3-processes
 $ git checkout 4-parallel
 ```
 
+### Nodes
+
+```bash
+$ git checkout 5-nodes
+```
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed

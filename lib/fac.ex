@@ -349,4 +349,99 @@ defmodule Fac do
     |> Enum.map(concurrent_doubler)
     |> Enum.map(receiver)
   end
+
+  ############
+  # Nodes
+  ############
+
+  @doc """
+  For exploring how elixir can be distributed.
+
+  We will be starting up two nodes in different terminals in order to
+  explore how elixir can be distributed.
+
+  In one terminal window we'll start up an iex session with a node name
+  of "grue". Notice that we use the `sname` flag to indicate that we are
+  specifying a "short name":
+
+      $ iex --sname grue
+      iex(grue@NestPuter)>
+
+  We can now have a look at what our node's name is.
+
+      iex(grue@NestPuter)> Node.self
+      :grue@NestPuter
+
+  Ok, so we have one node. Lets start up another session named "minion":
+
+      $ iex --sname minion
+      iex(minion@NestPuter)>
+
+      iex(minion@NestPuter)> Node.self
+      :minion@NestPuter
+
+  That's great, but how do we communicate between them?
+
+  We need to have a reference to the remote node. We can see that we have not
+  connected "grue" to minion by checking "grue's" node list
+
+      iex(grue@NestPuter)> Node.list
+      []
+
+  We can also confirm that "minion" doesn't know about "grue" yet.
+      iex(minion@NestPuter)> Node.list
+      []
+
+  To connect to "minion" we use `Node.connect`:
+
+      iex(grue@NestPuter)> Node.connect(:minion@NestPuter)
+      true
+
+      iex(grue@NestPuter)> Node.list
+      [:minion@NestPuter]
+
+  What's cool and interesting is that the "minion" node now also has "grue" in
+  it's list of remote nodes:
+
+      iex(minion@NestPuter)> Node.list
+      [:grue@NestPuter]
+
+
+  Ok, so now we know how to become members of each others' professional network,
+  we can execute some code remotely. For the next example we will compile in the
+  current project and name the nodes at the same time.
+
+      # in one terminal window
+      $ iex --sname grue -S mix
+      iex(grue@NestPuter)>
+
+      # in the other terminal window
+      $ iex --sname minion -S mix
+      iex(minion@NestPuter)>
+
+   Let's connect our nodes
+
+      iex(grue@NestPuter)> Node.connect(:minion@NestPuter)
+      true
+
+  And spawn a function that run `whats_my_name?/0` in the other node using
+  `Node.spawn/2`:
+
+      iex(grue@NestPuter)> Node.spawn(:minion@NestPuter, &Nodes.whats_my_name?/0)
+      :minion@NestPuter
+      #PID<15617.162.0>
+
+  ## Do you want to know more?
+
+  What happens when we change the function below and recompile the project in
+  only one of the nodes?
+
+  What if I don't know what the nodes name is upfront? How do I connect to it?
+
+  Is this safe?
+  """
+  def whats_my_name? do
+    "My name is: #{Node.self()}"
+    |> IO.inspect()
+  end
 end

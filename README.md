@@ -18,6 +18,14 @@ Checkout branches as we go or stay on master to see everything at once.
 $ git checkout 0-new-application
 ```
 
+### Documentation
+
+```bash
+$ git checkout 1-docs
+$ mix deps.get
+$ mix docs
+```
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed

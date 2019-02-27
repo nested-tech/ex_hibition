@@ -1,4 +1,6 @@
 defmodule Fac do
+  import :timer, only: [sleep: 1]
+
   ############
   # Examples
   ############
@@ -147,6 +149,7 @@ defmodule Fac do
 
   def for_each([], _function), do: :ok
 
+  @spec map(list(number()), function()) :: list(number())
   @doc """
   Transforms each element of a list using the given function and returns
   a list of the transformed results
@@ -166,6 +169,7 @@ defmodule Fac do
 
   defp map([], results, _function), do: results
 
+  @spec reduce(list(number()), number(), function()) :: number()
   @doc """
   Combines an accumulator with each element of a list using the given function
 
@@ -238,5 +242,111 @@ defmodule Fac do
       {sender, greeting} ->
         send(sender, hello_goodbye(greeting))
     end
+  end
+
+  ############
+  # Parallel
+  ###########
+
+  @spec double(number()) :: number()
+  @doc """
+  A function that returns the result of doubling the argument.
+  """
+  def double(number) do
+    number * 2
+  end
+
+  @spec double_slowly(number()) :: number()
+  @doc """
+  A function that waits for a second and then returns the result of
+  doubling the argument.
+  """
+  def double_slowly(number) do
+    sleep(1_000)
+    double(number)
+  end
+
+  @spec pmap(list(number()), function()) :: list(number())
+  @doc """
+  We have used the `map/2` function to transform a list into another, equal
+  length list whose elements have are the result of calling a function on
+  each element of the original list.
+
+  This code also showcases the use of "typespecs" that can be used with a tool
+  called [dialyzer](http://erlang.org/doc/man/dialyzer.html) to type check our
+  elixir code. Notice the line starting with `@spec`.
+
+  In order to get a sense for how operating on lists concurrently can be useful
+  we will be using the erlang [`:timer`](http://erlang.org/doc/man/timer.html)
+  module and the `double_slowly/1` function to record how long our map takes.
+
+  Example:
+
+      iex> doubler = &Fac.double_slowly/1
+      &Fac.double_slowly/1
+
+      iex> {time, result} = :timer.tc(
+       ..>   Fac, :map, [[1,2,3], doubler]
+       ..> )
+      {3002632, [2, 4, 6]}
+
+  Note:
+    `:timer.tc/2` returns a tuple of `{time, result}` where time is in
+    milliseconds. From the example above we see that the map operation takes
+    about 3 seconds to complete.
+
+
+  We can use the `pmap/2` function to do the same work as `map/2` while
+  leveraging multiple concurrent processes.
+
+  Notice how we use process identifiers to determine where to send messages
+  and anonymous functions as first class citizens.
+
+  `spawn_link` is similar to `spawn` except that it links the current process
+  with the spawned/child process. This means that if the child process "dies"
+  the current process will receive that signal and either manage it or exit as
+  well. This leads into how supervisors work...
+
+  Timing `pmap/2` shows that the concurrent operation is significantly faster
+  than our serial `map/2` function
+
+      iex> doubler = &Fac.double_slowly/1
+      &Fac.double_slowly/1
+
+      iex> {time, result} = :timer.tc(
+       ..>   Fac, :pmap, [[3, 2, 1], doubler]
+       ..> )
+      {1000733, [6, 4, 2]}
+
+  The concurrent `pmap` function take about 1 second to complete :D
+
+  ## Do you want to know more?
+
+  Are these functions limited to use with numbers?
+
+  Can you think of other use cases for parallel mapping?
+
+  When would it NOT make sense to operate concurrently?
+  (hint: think about your `reduce/3` function)
+
+  """
+  def pmap(numbers, doubler) do
+    me = self()
+
+    concurrent_doubler = fn number ->
+      spawn_link(fn ->
+        send(me, {self(), doubler.(number)})
+      end)
+    end
+
+    receiver = fn pid ->
+      receive do
+        {^pid, result} -> result
+      end
+    end
+
+    numbers
+    |> Enum.map(concurrent_doubler)
+    |> Enum.map(receiver)
   end
 end

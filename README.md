@@ -38,6 +38,12 @@ $ git checkout 2-modules
 $ git checkout 3-processes
 ```
 
+### Parallel operations
+
+```bash
+$ git checkout 4-parallel
+```
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed

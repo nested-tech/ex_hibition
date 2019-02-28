@@ -29,6 +29,9 @@ defmodule Fac do
 
   ADD DOC TESTS HERE PLZ
 
+      iex> Foo.bar()
+      :nested_is_great!
+
   """
   @spec pmap(list(number()), function()) :: list(number())
   def pmap(numbers, doubler) do

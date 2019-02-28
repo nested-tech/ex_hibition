@@ -27,10 +27,16 @@ defmodule Fac do
 
   @doc """
 
-  ADD DOC TESTS HERE PLZ
+  This is the pmap documentation. You can write *markdown* in **here**.
+
+  > pmap is cool.
+
+  ### ADD DOC TESTS HERE PLZ ↓↓
 
       iex> Foo.bar()
       :nested_is_great!
+
+  ### ADD DOC TESTS HERE PLZ ↑↑
 
   """
   @spec pmap(list(number()), function()) :: list(number())
